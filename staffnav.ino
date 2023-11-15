@@ -1,6 +1,6 @@
 #include "TinyGPS.h"
 #include <HardwareSerial.h>
-#include "WifiClientSecure.h"
+#include "WiFiClient.h"
 #include <ArduinoJson.h>
 
 const int ultraSonicTrigger = 5;
@@ -14,15 +14,15 @@ const int vibrationMotorPin = 22;
 const int gpsRX = 22;
 const int gpsTX = 21;
 
-bool debugOption = truee;
+bool debugOption = true;
 
 long duration;
 float distance;
 
-const char* wifiSSID = "bruh";
-const char* wifiPassword = "asd";
-const char* navServer = "staging.hamburgz.online";
-const char* navServerWithPath = "staging.hamburgz.online/api/updatePosition";
+const char* wifiSSID = "Wokwi-GUEST";
+const char* wifiPassword = "";
+const char* navServer = "159.65.6.49";
+const char* navServerWithPath = "159.65.6.49:3000/api/updatePosition";
 const char* apiKey = "e1c0bd3793f0fc6c965570ae84946b6bf1284df9e7a56b7d92d9bc73b8e2df0c";
 
 static const uint32_t gpsBaudRate = 9600;
@@ -30,7 +30,7 @@ static const uint32_t gpsBaudRate = 9600;
 TinyGPSPlus gps;
 HardwareSerial ss(2);
 
-WiFiClientSecure client;
+WiFiClient client;
 
 
 
@@ -142,8 +142,8 @@ void sendLocation(float lat, float lng) {
   StaticJsonDocument<200> doc;
 
   // Create a JSON document
-  doc["latitude"] = lat;
-  doc["longitude"] = lng;
+  doc["lat"] = lat;
+  doc["lon"] = lng;
   doc["apiKey"] = apiKey;
 
   // Serialize the JSON document to a string
@@ -152,12 +152,12 @@ void sendLocation(float lat, float lng) {
 
   // Make the POST request
   String url = String(navServerWithPath);
-  if (url.startsWith("/")) {
-    url = url.substring(1);
-  }
+  // if (url.startsWith("/")) {
+  //   url = url.substring(1);
+  // }
 
-  if (client.connect(navServer, 443)) {
-    client.print(String("POST /") + url + " HTTP/1.1\r\n" +
+  if (client.connect(navServer, 3000)) {
+    client.print("POST /" + url + " HTTP/1.1\r\n" +
                  "Host: " + navServer + "\r\n" +
                  "Content-Type: application/json\r\n" +
                  "Content-Length: " + jsonStr.length() + "\r\n\r\n" +
