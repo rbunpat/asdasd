@@ -1,6 +1,7 @@
 #include "TinyGPS.h"
 #include <HardwareSerial.h>
 #include "WifiClientSecure.h"
+#include <ArduinoJson.h>
 
 const int ultraSonicTrigger = 5;
 const int ultraSonicEcho = 18;
@@ -13,15 +14,16 @@ const int vibrationMotorPin = 22;
 const int gpsRX = 22;
 const int gpsTX = 21;
 
-bool debugOption = false;
+bool debugOption = truee;
 
 long duration;
 float distance;
 
 const char* wifiSSID = "bruh";
 const char* wifiPassword = "asd";
-const char* navServer = "hamburgz.online";
-const char* navServerWithPath = "hamburgz.online/api/updatePosition";
+const char* navServer = "staging.hamburgz.online";
+const char* navServerWithPath = "staging.hamburgz.online/api/updatePosition";
+const char* apiKey = "e1c0bd3793f0fc6c965570ae84946b6bf1284df9e7a56b7d92d9bc73b8e2df0c";
 
 static const uint32_t gpsBaudRate = 9600;
 
@@ -70,6 +72,8 @@ void setup() {
 
 
   client.setInsecure();
+
+  sendLocation(123.2, 44.5);
 
 
 
@@ -131,3 +135,53 @@ float getCurrentLocation() {
 
   return lat, lng;
 }
+
+
+
+void sendLocation(float lat, float lng) {
+  StaticJsonDocument<200> doc;
+
+  // Create a JSON document
+  doc["latitude"] = lat;
+  doc["longitude"] = lng;
+  doc["apiKey"] = apiKey;
+
+  // Serialize the JSON document to a string
+  String jsonStr;
+  serializeJson(doc, jsonStr);
+
+  // Make the POST request
+  String url = String(navServerWithPath);
+  if (url.startsWith("/")) {
+    url = url.substring(1);
+  }
+
+  if (client.connect(navServer, 443)) {
+    client.print(String("POST /") + url + " HTTP/1.1\r\n" +
+                 "Host: " + navServer + "\r\n" +
+                 "Content-Type: application/json\r\n" +
+                 "Content-Length: " + jsonStr.length() + "\r\n\r\n" +
+                 jsonStr);
+
+    if (debugOption) {
+      Serial.println("Sent POST request with location data");
+    }
+  } else {
+    if (debugOption) {
+      Serial.println("Failed to connect to server");
+    }
+  }
+
+  // Wait for the response (you may need to adjust the delay depending on your server's response time)
+  delay(1000);
+
+  // Read and print the server's response
+  while (client.available()) {
+    char c = client.read();
+    Serial.print(c);
+  }
+
+  // Disconnect
+  client.stop();
+}
+
