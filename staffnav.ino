@@ -1,17 +1,17 @@
-#include <TinyGPS++.h>
+#include "TinyGPS.h"
 #include <HardwareSerial.h>
-#include <WifiClientSecure.h>
+#include "WifiClientSecure.h"
 
-#define ultraSonicTrigger = 5;
-#define ultraSonicEcho = 18;
-#define ultraSonicMaxDistance = 200;
+const int ultraSonicTrigger = 5;
+const int ultraSonicEcho = 18;
+const int ultraSonicMaxDistance = 200;
 
-#define soundSpeed = 0.034;
+const float soundSpeed = 0.034;
 
-#define vibrationMotorPin = 22;
+const int vibrationMotorPin = 22;
 
-#define gpsRX = 22;
-#define gpsTX = 21;
+const int gpsRX = 22;
+const int gpsTX = 21;
 
 bool debugOption = false;
 
@@ -28,7 +28,7 @@ static const uint32_t gpsBaudRate = 9600;
 TinyGPSPlus gps;
 HardwareSerial ss(2);
 
-WifiClientSecure client;
+WiFiClientSecure client;
 
 
 
@@ -60,7 +60,7 @@ void setup() {
     Serial.println("Wifi Connecting");
   }
 
-  while (WiFi,status() != WL_CONNECTED) {
+  while (WiFi.status() != WL_CONNECTED) {
     delay(1000);
   }
 
@@ -105,7 +105,7 @@ void triggerVibrationHigh() {
   digitalWrite(vibrationMotorPin, 0);
 }
 
-void getDistance() {
+float getDistance() {
   digitalWrite(ultraSonicTrigger, LOW);
   delayMicroseconds(2);
   digitalWrite(ultraSonicTrigger, HIGH);
@@ -119,16 +119,15 @@ void getDistance() {
   return distance;
 }
 
-void getCurrentLocation() {
+float getCurrentLocation() {
   float lat, lng;
 
   lat = lng = 0;
 
   if (gps.location.isValid()) {
     lat = gps.location.lat();
-    lon = gps.location.lng();
+    lng = gps.location.lng();
   }
 
-  return [lat, lng]
+  return [lat, lng];
 }
-
